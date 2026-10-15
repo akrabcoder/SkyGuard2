@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyGuard | سكاي جارد</title>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- خطوط -->
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+
+<!-- ستايلنا -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= شاشة الدخول ================= -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-icon">🛡️</div>
+      <h1>SkyGuard</h1>
+      <p data-i18n="sub">نظام مراقبة وتحكم الطيران الذكي</p>
+    </div>
+
+    <input id="pid" placeholder="رقم الطيار" value="PLT-001">
+    <input id="ppass" type="password" placeholder="كلمة المرور" value="skyguard">
+
+    <button class="login-btn" onclick="login()">
+      <span>🔐</span> <span data-i18n="btn">دخول</span>
+    </button>
+
+    <p class="login-hint">Demo: PLT-001 / skyguard</p>
+  </div>
+</div>
+
+<!-- ================= التطبيق ================= -->
+<div id="app">
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="tb-left">
+      <span class="logo-emoji">🛡️</span>
+      <span class="logo-txt">SkyGuard</span>
+    </div>
+
+    <div class="flight-info">
+      ✈️ <b id="flightNo">AA-1024</b>
+      <span class="sep">|</span>
+      <span id="routeTxt">CAI → LHR</span>
+    </div>
+
+    <div class="tb-right">
+      <button class="icon-btn" onclick="toggleLang()" title="Language">
+        🌐 <span id="langLbl">EN</span>
+      </button>
+      <button class="icon-btn" onclick="toggleSound()" title="Sound">
+        <span id="sndIcon">🔊</span>
+      </button>
+      <div class="clock">🕐 <span id="clock">00:00:00</span></div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <nav class="nav">
+        <button class="nav-item active" onclick="go('map',this)">
+          <span>🗺️</span> <span data-i18n="map">الخريطة</span>
+        </button>
+        <button class="nav-item" onclick="go('pass',this)">
+          <span>👥</span> <span data-i18n="pass">الركاب</span>
+          <span class="badge" id="passBadge">0</span>
+        </button>
+        <button class="nav-item" onclick="go('alerts',this)">
+          <span>⚠️</span> <span data-i18n="alerts">الإنذارات</span>
+          <span class="badge red" id="alertBadge">0</span>
+        </button>
+        <button class="nav-item" onclick="go('log',this)">
+          <span>📋</span> <span data-i18n="log">السجل</span>
+        </button>
+      </nav>
+
+      <div class="status-box">
+        <div class="dot"></div>
+        <span data-i18n="online">النظام يعمل</span>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <main class="content">
+
+      <!-- تبويب الخريطة -->
+      <section class="tab on" id="t-map">
+        <div id="map"></div>
+
+        <!-- لوحة المعلومات -->
+        <div class="info-panel">
+          <div class="info-title">✈️ <span data-i18n="flightInfo">بيانات الرحلة</span></div>
+          <div class="info-row">
+            <span data-i18n="from">من</span>
+            <span id="fromTxt">Cairo (CAI)</span>
+          </div>
+          <div class="info-row">
+            <span data-i18n="to">إلى</span>
+            <span id="toTxt">London (LHR)</span>
+          </div>
+          <div class="info-row">
+            <span data-i18n="speed">السرعة</span>
+            <span id="spdTxt">850 km/h</span>
+          </div>
+          <div class="info-row">
+            <span data-i18n="alt">الارتفاع</span>
+            <span id="altTxt">11,000 m</span>
+          </div>
+          <div class="info-row">
+            <span data-i18n="eta">الوصول المتوقع</span>
+            <span id="etaTxt">--</span>
+          </div>
+        </div>
+
+        <!-- زر الطوارئ -->
+        <button class="emg-btn" onclick="emergency()">
+          🚨 <span data-i18n="emg">طوارئ</span>
+        </button>
+      </section>
+
+      <!-- تبويب الركاب -->
+      <section class="tab" id="t-pass">
+        <div class="section-header">
+          <h2>👥 <span data-i18n="passT">مراقبة الركاب</span></h2>
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-num" id="totalPass">0</div>
+              <div class="stat-lbl" data-i18n="total">الإجمالي</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num green" id="safePass">0</div>
+              <div class="stat-lbl" data-i18n="safe">آمن</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num yellow" id="warnPass">0</div>
+              <div class="stat-lbl" data-i18n="warn">اشتباه</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num red" id="dangerPass">0</div>
+              <div class="stat-lbl" data-i18n="danger">خطر</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pass-grid" id="passGrid"></div>
+      </section>
+
+      <!-- تبويب الإنذارات -->
+      <section class="tab" id="t-alerts">
+        <div class="section-header">
+          <h2>⚠️ <span data-i18n="alertsT">الإنذارات</span></h2>
+        </div>
+        <div class="alerts-list" id="alertsList"></div>
+      </section>
+
+      <!-- تبويب السجل -->
+      <section class="tab" id="t-log">
+        <div class="section-header">
+          <h2>📋 <span data-i18n="logT">سجل الأحداث</span></h2>
+        </div>
+        <div class="log-list" id="logList"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- بيانات -->
+<script src="data.js"></script>
+<!-- التطبيق -->
+<script src="app.js"></script>
+</body>
+</html>
