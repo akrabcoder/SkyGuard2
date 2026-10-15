@@ -2,11 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SkyGuard | سكاي جارد</title>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- MapLibre GL (سحب سلس زي جوجل مابس) -->
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -39,11 +40,6 @@
       <span class="logo-emoji">🛡️</span>
       <span class="logo-txt">SkyGuard</span>
     </div>
-    <div class="flight-info">
-      ✈️ <b id="flightNo">AA-1024</b>
-      <span class="sep">|</span>
-      <span id="routeTxt">CAI → LHR</span>
-    </div>
     <div class="tb-right">
       <button class="icon-btn" onclick="toggleLang()">🌐 <span id="langLbl">EN</span></button>
       <button class="icon-btn" onclick="toggleSound()"><span id="sndIcon">🔊</span></button>
@@ -56,6 +52,40 @@
 
     <!-- Sidebar -->
     <aside class="sidebar">
+
+      <!-- بيانات الرحلة (بره الخريطة) -->
+      <div class="side-flight">
+        <div class="side-flight-title">
+          ✈️ <span data-i18n="flightInfo">بيانات الرحلة</span>
+        </div>
+        <div class="side-flight-no">
+          <b id="flightNo">AA-1024</b>
+          <span class="sep">|</span>
+          <span id="routeTxt">CAI → LHR</span>
+        </div>
+        <div class="side-row">
+          <span data-i18n="from">من</span>
+          <b id="fromTxt">Cairo (CAI)</b>
+        </div>
+        <div class="side-row">
+          <span data-i18n="to">إلى</span>
+          <b id="toTxt">London (LHR)</b>
+        </div>
+        <div class="side-row">
+          <span data-i18n="speed">السرعة</span>
+          <b id="spdTxt">850 km/h</b>
+        </div>
+        <div class="side-row">
+          <span data-i18n="alt">الارتفاع</span>
+          <b id="altTxt">11,000 m</b>
+        </div>
+        <div class="side-row">
+          <span data-i18n="eta">الوصول</span>
+          <b id="etaTxt">--</b>
+        </div>
+      </div>
+
+      <!-- الأزرار -->
       <nav class="nav">
         <button class="nav-item active" onclick="go('map',this)">
           <span>🗺️</span> <span data-i18n="map">الخريطة</span>
@@ -72,6 +102,7 @@
           <span>📋</span> <span data-i18n="log">السجل</span>
         </button>
       </nav>
+
       <div class="status-box">
         <div class="dot"></div>
         <span data-i18n="online">النظام يعمل</span>
@@ -84,16 +115,6 @@
       <!-- تبويب الخريطة -->
       <section class="tab on" id="t-map">
         <div id="map"></div>
-
-        <div class="info-panel">
-          <div class="info-title">✈️ <span data-i18n="flightInfo">بيانات الرحلة</span></div>
-          <div class="info-row"><span data-i18n="from">من</span><span id="fromTxt">Cairo (CAI)</span></div>
-          <div class="info-row"><span data-i18n="to">إلى</span><span id="toTxt">London (LHR)</span></div>
-          <div class="info-row"><span data-i18n="speed">السرعة</span><span id="spdTxt">850 km/h</span></div>
-          <div class="info-row"><span data-i18n="alt">الارتفاع</span><span id="altTxt">11,000 m</span></div>
-          <div class="info-row"><span data-i18n="eta">الوصول المتوقع</span><span id="etaTxt">--</span></div>
-        </div>
-
         <button class="emg-btn" onclick="emergency()">
           🚨 <span data-i18n="emg">طوارئ</span>
         </button>
@@ -103,7 +124,6 @@
       <section class="tab" id="t-pass">
         <div class="pass-layout">
 
-          <!-- شمال: شكل الطيارة -->
           <div class="plane-wrap">
             <div class="plane-header">
               <h2>✈️ <span data-i18n="cabinView">مقصورة الطائرة</span></h2>
@@ -114,10 +134,8 @@
               </div>
             </div>
 
-            <!-- الطيارة SVG -->
             <div class="plane-svg-wrap">
               <svg class="plane-svg" viewBox="0 0 400 1200" preserveAspectRatio="xMidYMid meet">
-                <!-- جسم الطيارة -->
                 <path class="plane-body" d="M200,20
                   C160,20 130,60 120,140
                   L120,900
@@ -125,30 +143,22 @@
                   C250,1120 280,1020 280,900
                   L280,140
                   C270,60 240,20 200,20 Z" />
-
-                <!-- الجنحان -->
                 <path class="plane-wing" d="M120,320 L20,420 L20,470 L120,420 Z" />
                 <path class="plane-wing" d="M280,320 L380,420 L380,470 L280,420 Z" />
-
-                <!-- الدفة الخلفية -->
                 <path class="plane-tail" d="M160,1020 L140,1140 L200,1170 L260,1140 L240,1020 Z" />
-
-                <!-- Cockpit -->
                 <path class="plane-cockpit" d="M160,40 L200,25 L240,40 L235,90 L165,90 Z" />
               </svg>
-
-              <!-- الكراسي هتتولد بالـ JS هنا -->
               <div class="seats-layer" id="seatsLayer"></div>
             </div>
           </div>
 
-          <!-- يمين: تفاصيل الراكب -->
           <div class="pass-detail" id="passDetail">
             <div class="pd-empty">
               <div class="pd-empty-icon">👤</div>
               <p data-i18n="selectPassenger">اختر راكب لعرض بياناته</p>
             </div>
           </div>
+
         </div>
       </section>
 
@@ -169,14 +179,6 @@
       </section>
 
     </main>
-  </div>
-</div>
-
-<!-- ===================== Modal الراكب ===================== -->
-<div id="passModal" class="modal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div id="modalContent"></div>
   </div>
 </div>
 
