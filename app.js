@@ -5,7 +5,7 @@
 let map, planeMarker, routeLine, emergencyRoute;
 let planeLat, planeLng, progress = 0;
 let emergencyMode = false;
-let nearestAirportMarker = null;
+let airportMarkers = [];
 let animFrameId = null;
 
 let lang = localStorage.getItem('sg_lang') || 'ar';
@@ -27,6 +27,7 @@ function applyLang() {
   if (ll) ll.textContent = lang === 'ar' ? 'EN' : 'ع';
   localStorage.setItem('sg_lang', lang);
 
+  populateAirportSelects();
   renderAlerts();
   renderLog();
   if (selectedPassenger) showPassengerDetail(selectedPassenger.id);
@@ -111,20 +112,140 @@ function go(tab, btn) {
   document.querySelectorAll('.tab').forEach(c => c.classList.remove('on'));
   document.getElementById('t-' + tab).classList.add('on');
 
-  if (tab === 'map' && map) {
-    setTimeout(() => map.resize(), 150);
-  }
+  if (tab === 'map' && map) setTimeout(() => map.resize(), 150);
   if (tab === 'pass') setTimeout(renderSeats, 100);
   if (tab === 'alerts') renderAlerts();
   if (tab === 'log') renderLog();
 }
 
-/* ============================================
-   الخريطة — MapLibre GL (سحب سلس زي جوجل مابس)
-   ============================================ */
-function initMap() {
+/* ============ قوائم المطارات ============ */
+function populateAirportSelects() {
+  const fromSel = document.getElementById('fromSelect');
+  const toSel = document.getElementById('toSelect');
+  if (!fromSel || !toSel) return;
+
+  // ترتيب حسب الاسم
+  const sorted = [...AIRPORT_LIST].sort((a, b) => a.name.localeCompare(b.name));
+
+  const options = sorted.map(a => {
+    const label = lang === 'ar'
+      ? `${a.nameAr} (${a.code}) — ${a.country}`
+      : `${a.name} (${a.code}) — ${a.country}`;
+    return `<option value="${a.code}">${label}</option>`;
+  }).join('');
+
+  fromSel.innerHTML = options;
+  toSel.innerHTML = options;
+
+  fromSel.value = FLIGHT.from;
+  toSel.value = FLIGHT.to;
+}
+
+/* ============ تغيير مطار الإقلاع ============ */
+function changeFrom(code) {
+  if (code === FLIGHT.to) {
+    alert(lang === 'ar' ? 'مطار الإقلاع لازم يختلف عن الهبوط!' : 'Departure must differ from arrival!');
+    document.getElementById('fromSelect').value = FLIGHT.from;
+    return;
+  }
+  FLIGHT.from = code;
+  syncAirportsData();
+  progress = 0;
+  emergencyMode = false;
+  addLog('🛫 Departure → ' + code);
+  rebuildFlight();
+}
+
+/* ============ تغيير مطار الهبوط ============ */
+function changeTo(code) {
+  if (code === FLIGHT.from) {
+    alert(lang === 'ar' ? 'مطار الهبوط لازم يختلف عن الإقلاع!' : 'Arrival must differ from departure!');
+    document.getElementById('toSelect').value = FLIGHT.to;
+    return;
+  }
+  FLIGHT.to = code;
+  syncAirportsData();
+  progress = 0;
+  emergencyMode = false;
+  addLog('🛬 Destination → ' + code);
+  rebuildFlight();
+}
+
+/* ============ مزامنة AIRPORTS مع AIRPORT_LIST ============ */
+function syncAirportsData() {
+  AIRPORT_LIST.forEach(a => {
+    AIRPORTS[a.code] = {
+      name: a.name,
+      nameAr: a.nameAr,
+      lat: a.lat,
+      lng: a.lng,
+      country: a.country
+    };
+  });
+}
+
+/* ============ إعادة بناء الرحلة ============ */
+function rebuildFlight() {
   const start = AIRPORTS[FLIGHT.from];
   const dest = AIRPORTS[FLIGHT.to];
+  if (!start || !dest) return;
+
+  // تحديث النصوص
+  const fromEl = document.getElementById('fromTxt');
+  if (fromEl) fromEl.textContent = start.name + ' (' + FLIGHT.from + ')';
+  const toEl = document.getElementById('toTxt');
+  if (toEl) toEl.textContent = dest.name + ' (' + FLIGHT.to + ')';
+  const routeEl = document.getElementById('routeTxt');
+  if (routeEl) routeEl.textContent = FLIGHT.from + ' → ' + FLIGHT.to;
+
+  // إعادة تعيين موقع الطيارة
+  planeLat = start.lat;
+  planeLng = start.lng;
+  if (planeMarker) planeMarker.setLngLat([planeLng, planeLat]);
+
+  // حذف كل الـ markers القديمة للمطارات
+  airportMarkers.forEach(m => m.remove());
+  airportMarkers = [];
+
+  // إعادة رسم كل المطارات
+  drawAirports();
+
+  // تحديث خط المسار
+  if (map.getSource('route')) {
+    map.getSource('route').setData({
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: [[start.lng, start.lat], [dest.lng, dest.lat]]
+      }
+    });
+  }
+
+  // إزالة خط الطوارئ
+  if (map.getLayer('emg-line')) map.removeLayer('emg-line');
+  if (map.getSource('emg-route')) map.removeSource('emg-route');
+
+  if (map.getLayer('route-line')) {
+    map.setPaintProperty('route-line', 'line-color', '#00d4ff');
+    map.setPaintProperty('route-line', 'line-width', 2);
+    map.setPaintProperty('route-line', 'line-dasharray', [3, 3]);
+  }
+
+  document.body.style.background = '';
+
+  // حرّك الخريطة عشان تشوف المسار
+  const bounds = [
+    [Math.min(start.lng, dest.lng) - 5, Math.min(start.lat, dest.lat) - 5],
+    [Math.max(start.lng, dest.lng) + 5, Math.max(start.lat, dest.lat) + 5]
+  ];
+  map.fitBounds(bounds, { padding: 60, duration: 1000 });
+}
+
+/* ============================================
+   الخريطة — MapLibre GL
+   ============================================ */
+function initMap() {
+  syncAirportsData();
 
   map = new maplibregl.Map({
     container: 'map',
@@ -137,31 +258,29 @@ function initMap() {
             'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
           ],
           tileSize: 256,
+          maxzoom: 19,
           attribution: 'Esri World Imagery'
-        },
-        'labels': {
-          type: 'raster',
-          tiles: [
-            'https://stamen-tiles.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}.png'
-          ],
-          tileSize: 256
         }
       },
       layers: [
-        { id: 'satellite-layer', type: 'raster', source: 'satellite', minzoom: 0, maxzoom: 19 },
-        { id: 'labels-layer', type: 'raster', source: 'labels', minzoom: 0, maxzoom: 19, paint: { 'raster-opacity': 0.7 } }
+        { id: 'satellite-layer', type: 'raster', source: 'satellite', minzoom: 0, maxzoom: 19 }
       ]
     },
     center: [15, 42],
     zoom: 3.5,
-    minZoom: 1.5,
+    minZoom: 1,
     maxZoom: 18,
     dragRotate: false,
     pitchWithRotate: false,
     touchPitch: false,
     attributionControl: false,
-    antialias: true,
-    fadeDuration: 100
+    antialias: false,
+    fadeDuration: 0,
+    preserveDrawingBuffer: false,
+    refreshExpiredTiles: false,
+    maxTileCacheSize: 200,
+    trackResize: true,
+    renderWorldCopies: true
   });
 
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
@@ -177,13 +296,12 @@ function initMap() {
 
 /* ============ رسم المطارات ============ */
 function drawAirports() {
-  Object.keys(AIRPORTS).forEach(code => {
-    const a = AIRPORTS[code];
-
+  // نعرض المطارات اللي في القائمة بس
+  AIRPORT_LIST.forEach(a => {
     let color = '#00d4ff';
     let size = 6;
-    if (code === FLIGHT.from) { color = '#00ff9d'; size = 10; }
-    if (code === FLIGHT.to) { color = '#00d4ff'; size = 10; }
+    if (a.code === FLIGHT.from) { color = '#00ff9d'; size = 10; }
+    if (a.code === FLIGHT.to) { color = '#00d4ff'; size = 10; }
 
     const el = document.createElement('div');
     el.style.cssText = `
@@ -199,15 +317,17 @@ function drawAirports() {
 
     const popup = new maplibregl.Popup({ offset: 15, closeButton: false })
       .setHTML(`<div style="font-family:Cairo,sans-serif;padding:4px 8px;direction:${lang==='ar'?'rtl':'ltr'}">
-        <b style="color:${color}">${label} (${code})</b>
-        ${code === FLIGHT.from ? '<br>🛫 ' + t('from') : ''}
-        ${code === FLIGHT.to ? '<br>🛬 ' + t('to') : ''}
+        <b style="color:${color}">${label} (${a.code})</b>
+        ${a.code === FLIGHT.from ? '<br>🛫 ' + t('from') : ''}
+        ${a.code === FLIGHT.to ? '<br>🛬 ' + t('to') : ''}
       </div>`);
 
-    new maplibregl.Marker({ element: el })
+    const marker = new maplibregl.Marker({ element: el })
       .setLngLat([a.lng, a.lat])
       .setPopup(popup)
       .addTo(map);
+
+    airportMarkers.push(marker);
   });
 }
 
@@ -266,11 +386,11 @@ function drawPlane() {
 
 /* ============ حركة الطيارة ============ */
 function startPlaneAnimation() {
-  const start = AIRPORTS[FLIGHT.from];
-  const dest = AIRPORTS[FLIGHT.to];
-
   function animate() {
     if (!emergencyMode && progress < 1) {
+      const start = AIRPORTS[FLIGHT.from];
+      const dest = AIRPORTS[FLIGHT.to];
+
       progress += 0.0008;
       if (progress > 1) progress = 1;
 
@@ -299,13 +419,15 @@ function emergency() {
     btn.innerHTML = '🚨 ' + t('emg') + ' ✓';
   }
 
+  // نبحث في كل المطارات عن الأقرب
   let nearest = null, minDist = Infinity;
-  Object.keys(AIRPORTS).forEach(code => {
-    if (code === FLIGHT.from) return;
-    const a = AIRPORTS[code];
+  AIRPORT_LIST.forEach(a => {
+    if (a.code === FLIGHT.from) return;
     const d = Math.hypot(a.lat - planeLat, a.lng - planeLng) * 111;
-    if (d < minDist) { minDist = d; nearest = { code, ...a, dist: Math.round(d) }; }
+    if (d < minDist) { minDist = d; nearest = { ...a, dist: Math.round(d) }; }
   });
+
+  if (!nearest) return;
 
   addLog('🚨 EMERGENCY ACTIVATED');
   addLog('📍 Nearest: ' + nearest.name + ' (' + nearest.code + ')');
@@ -315,14 +437,12 @@ function emergency() {
     (lang === 'ar' ? nearest.nameAr : nearest.name) +
     ' (' + nearest.code + ') — ' + nearest.dist + ' km', null);
 
-  // مسار أحمر
   if (map.getLayer('route-line')) {
     map.setPaintProperty('route-line', 'line-color', '#ff2d55');
     map.setPaintProperty('route-line', 'line-width', 3);
     map.setPaintProperty('route-line', 'line-dasharray', [2, 2]);
   }
 
-  // خط الطوارئ
   if (!map.getSource('emg-route')) {
     map.addSource('emg-route', {
       type: 'geojson',
@@ -339,7 +459,6 @@ function emergency() {
     });
   }
 
-  // علامة المطار الأقرب
   const mEl = document.createElement('div');
   mEl.style.cssText = `
     width: 20px; height: 20px;
@@ -347,7 +466,6 @@ function emergency() {
     border-radius: 50%;
     box-shadow: 0 0 20px #ff2d55, 0 0 8px #fff;
     border: 3px solid #fff;
-    animation: pulse 1s infinite;
   `;
 
   new maplibregl.Marker({ element: mEl })
@@ -356,7 +474,6 @@ function emergency() {
       .setHTML(`<b style="color:#ff2d55">🆘 ${t('nearest')}: ${nearest.name}</b>`))
     .addTo(map);
 
-  // حرّك الطيارة
   const fromLat = planeLat, fromLng = planeLng;
   let p = 0;
   const timer = setInterval(() => {
@@ -368,7 +485,6 @@ function emergency() {
     ]);
   }, 100);
 
-  // تحديث اللوحة
   const toEl = document.getElementById('toTxt');
   if (toEl) toEl.textContent = nearest.name + ' (' + nearest.code + ')';
   const routeEl = document.getElementById('routeTxt');
@@ -567,7 +683,7 @@ function renderLog() {
   `).join('');
 }
 
-/* ============ المراقبة (AI) ============ */
+/* ============ المراقبة ============ */
 function startMonitoring() {
   updateBadges();
 
