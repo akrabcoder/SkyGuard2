@@ -1,5 +1,5 @@
 /* ============================================
-   SkyGuard — التصميم الكامل
+   SkyGuard — التصميم الكامل + Responsive
    ============================================ */
 
 :root {
@@ -14,17 +14,20 @@
   --wrn: #ffb800;
   --txt: #e8f1ff;
   --dim: #7a8aa8;
-  --glow: 0 0 20px rgba(0, 212, 255, 0.4);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
 
 body {
   font-family: 'Cairo', sans-serif;
   background: var(--bg);
   color: var(--txt);
-  overflow: hidden;
-  height: 100vh;
 }
 
 html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
@@ -38,6 +41,7 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
   justify-content: center;
   background: radial-gradient(circle at center, #0f1e3a 0%, #03060c 100%);
   z-index: 3000;
+  padding: 20px;
 }
 
 .login-box {
@@ -46,6 +50,7 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
   border-radius: 24px;
   padding: 50px 44px;
   width: 420px;
+  max-width: 100%;
   box-shadow: 0 0 100px rgba(0, 212, 255, 0.15);
   text-align: center;
 }
@@ -74,7 +79,7 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 
 .login-box input {
   background: var(--bg2); border: 1px solid var(--bd); border-radius: 12px;
-  padding: 15px 18px; color: var(--txt); font-size: 15px; font-family: inherit;
+  padding: 15px 18px; color: var(--txt); font-size: 16px; font-family: inherit;
   outline: none; width: 100%; margin-bottom: 14px; transition: 0.25s;
 }
 
@@ -99,77 +104,104 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 .login-hint { margin-top: 22px; font-size: 12px; color: var(--dim); }
 
 /* ============ App ============ */
-#app { display: none; flex-direction: column; height: 100vh; }
+#app { display: none; flex-direction: column; height: 100vh; height: 100dvh; }
 #app.on { display: flex; }
 
 /* ============ Top Bar ============ */
 .topbar {
-  height: 64px;
+  height: 56px;
   background: linear-gradient(90deg, var(--bg2), var(--card));
   border-bottom: 1px solid var(--bd);
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 24px; flex-shrink: 0; z-index: 100;
+  padding: 0 16px; flex-shrink: 0; z-index: 100;
 }
 
-.tb-left { display: flex; align-items: center; gap: 12px; }
-.logo-emoji { font-size: 26px; filter: drop-shadow(0 0 10px var(--acc)); }
+.tb-left { display: flex; align-items: center; gap: 10px; }
+.logo-emoji { font-size: 22px; filter: drop-shadow(0 0 10px var(--acc)); }
 
 .logo-txt {
-  font-size: 20px; font-weight: 900; letter-spacing: 4px;
+  font-size: 17px; font-weight: 900; letter-spacing: 3px;
   background: linear-gradient(90deg, var(--acc), var(--acc2));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.flight-info {
-  display: flex; align-items: center; gap: 12px;
-  background: var(--card); border: 1px solid var(--bd);
-  border-radius: 12px; padding: 8px 20px; font-size: 14px; color: var(--dim);
-}
-
-.flight-info b { color: var(--acc); }
-.flight-info .sep { opacity: 0.3; }
-
-.tb-right { display: flex; align-items: center; gap: 12px; }
+.tb-right { display: flex; align-items: center; gap: 8px; }
 
 .icon-btn {
   background: var(--card); border: 1px solid var(--bd); color: var(--txt);
-  border-radius: 10px; padding: 9px 14px; cursor: pointer;
-  display: flex; align-items: center; gap: 6px; font-family: inherit; font-size: 13px;
+  border-radius: 10px; padding: 7px 10px; cursor: pointer;
+  display: flex; align-items: center; gap: 5px; font-family: inherit; font-size: 12px;
   transition: 0.2s;
 }
 
 .icon-btn:hover { border-color: var(--acc); color: var(--acc); }
 
 .clock {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
   background: var(--card); border: 1px solid var(--bd);
-  border-radius: 10px; padding: 9px 16px;
-  font-family: 'Orbitron', monospace; font-size: 14px; color: var(--acc2);
+  border-radius: 10px; padding: 7px 10px;
+  font-family: 'Orbitron', monospace; font-size: 12px; color: var(--acc2);
 }
 
 /* ============ Layout ============ */
 .main { display: flex; flex: 1; overflow: hidden; }
 
+/* ============ Sidebar ============ */
 .sidebar {
-  width: 240px;
+  width: 280px;
   background: linear-gradient(180deg, var(--bg2), var(--card));
   border-inline-end: 1px solid var(--bd);
-  display: flex; flex-direction: column; justify-content: space-between;
-  padding: 20px 12px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 16px 12px; flex-shrink: 0; overflow-y: auto;
 }
 
-.nav { display: flex; flex-direction: column; gap: 6px; }
+/* لوحة بيانات الرحلة (بره الخريطة) */
+.side-flight {
+  background: linear-gradient(160deg, var(--card2), var(--card));
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.side-flight-title {
+  font-size: 13px; font-weight: 800; color: var(--acc);
+  padding-bottom: 10px; margin-bottom: 10px;
+  border-bottom: 1px solid var(--bd);
+  letter-spacing: 1px;
+}
+
+.side-flight-no {
+  font-size: 14px; color: var(--dim);
+  margin-bottom: 10px; text-align: center;
+  padding: 8px; background: var(--bg2);
+  border-radius: 8px;
+}
+
+.side-flight-no b { color: var(--acc); }
+
+.side-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; padding: 7px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.side-row:last-child { border: none; }
+.side-row span { color: var(--dim); }
+.side-row b { color: var(--acc); font-weight: 700; }
+
+/* Nav */
+.nav { display: flex; flex-direction: column; gap: 5px; }
 
 .nav-item {
   background: transparent; border: none; color: var(--dim);
-  padding: 13px 16px; border-radius: 12px;
-  display: flex; align-items: center; gap: 12px;
-  cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600;
+  padding: 11px 14px; border-radius: 10px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600;
   text-align: start; transition: 0.2s; width: 100%; position: relative;
 }
 
-.nav-item span:first-child { font-size: 18px; }
+.nav-item span:first-child { font-size: 17px; }
 .nav-item:hover { background: var(--card2); color: var(--txt); }
 
 .nav-item.active {
@@ -179,19 +211,20 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 
 .badge {
   margin-inline-start: auto; background: var(--acc); color: #000;
-  font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 800;
+  font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 800;
 }
 
 .badge.red { background: var(--dgr); color: #fff; }
 
 .status-box {
-  display: flex; align-items: center; gap: 10px;
-  padding: 13px 16px; background: var(--card); border: 1px solid var(--bd);
-  border-radius: 12px; font-size: 13px; color: var(--dim);
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; background: var(--card); border: 1px solid var(--bd);
+  border-radius: 10px; font-size: 12px; color: var(--dim);
+  margin-top: auto;
 }
 
 .dot {
-  width: 10px; height: 10px; border-radius: 50%;
+  width: 8px; height: 8px; border-radius: 50%;
   background: var(--acc2); box-shadow: 0 0 12px var(--acc2);
   animation: pulse 2s infinite;
 }
@@ -209,50 +242,21 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 .tab.on { display: block; }
 
 /* ============ الخريطة ============ */
-#map { width: 100%; height: 100%; background: #0a0f1a; }
-
-.info-panel {
-  position: absolute;
-  top: 80px;
-  inset-inline-end: 20px;
-  z-index: 500;
-  background: rgba(16, 26, 46, 0.96);
-  border: 1px solid var(--bd);
-  border-radius: 16px;
-  padding: 16px 20px;
-  min-width: 270px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
+#map {
+  width: 100%;
+  height: 100%;
+  background: #0a0f1a;
 }
-
-.info-panel * { pointer-events: none; }
-
-.info-title {
-  font-size: 14px; font-weight: 800; color: var(--acc);
-  margin-bottom: 12px; padding-bottom: 10px;
-  border-bottom: 1px solid var(--bd); letter-spacing: 1px;
-}
-
-.info-row {
-  display: flex; justify-content: space-between; gap: 20px;
-  font-size: 13px; padding: 7px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.info-row:last-child { border: none; }
-.info-row span:first-child { color: var(--dim); }
-.info-row span:last-child { color: var(--acc); font-weight: 700; }
 
 /* ============ زر الطوارئ ============ */
 .emg-btn {
-  position: absolute; bottom: 30px; inset-inline-start: 30px;
+  position: absolute; bottom: 24px; inset-inline-start: 24px;
   z-index: 500;
   background: linear-gradient(90deg, var(--dgr), #ff6b3d);
-  color: #fff; border: none; border-radius: 16px;
-  padding: 18px 30px; font-size: 17px; font-weight: 900;
+  color: #fff; border: none; border-radius: 14px;
+  padding: 14px 24px; font-size: 15px; font-weight: 900;
   font-family: inherit; cursor: pointer;
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
   box-shadow: 0 10px 40px rgba(255, 45, 85, 0.6);
   transition: 0.2s;
 }
@@ -266,36 +270,34 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 .pass-layout {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 20px;
-  padding: 20px;
+  gap: 16px;
+  padding: 16px;
   height: 100%;
 }
 
 .plane-wrap {
   background: var(--card);
   border: 1px solid var(--bd);
-  border-radius: 20px;
-  padding: 20px;
+  border-radius: 18px;
+  padding: 16px;
   display: flex; flex-direction: column;
   overflow: hidden;
 }
 
 .plane-header {
   display: flex; justify-content: space-between; align-items: center;
-  padding-bottom: 16px; border-bottom: 1px solid var(--bd);
-  margin-bottom: 16px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--bd);
+  margin-bottom: 12px; flex-wrap: wrap; gap: 10px;
 }
 
-.plane-header h2 { font-size: 20px; color: var(--txt); }
+.plane-header h2 { font-size: 17px; color: var(--txt); }
 
-.legend { display: flex; gap: 16px; font-size: 12px; color: var(--dim); }
-.legend .lg { display: flex; align-items: center; gap: 6px; }
-.legend .lg i {
-  width: 12px; height: 12px; border-radius: 50%; display: inline-block;
-}
-.legend .safe i { background: var(--acc2); box-shadow: 0 0 8px var(--acc2); }
-.legend .warn i { background: var(--wrn); box-shadow: 0 0 8px var(--wrn); }
-.legend .danger i { background: var(--dgr); box-shadow: 0 0 8px var(--dgr); }
+.legend { display: flex; gap: 12px; font-size: 11px; color: var(--dim); flex-wrap: wrap; }
+.legend .lg { display: flex; align-items: center; gap: 5px; }
+.legend .lg i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.legend .safe i { background: var(--acc2); }
+.legend .warn i { background: var(--wrn); }
+.legend .danger i { background: var(--dgr); }
 
 .plane-svg-wrap {
   position: relative;
@@ -305,58 +307,48 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 }
 
 .plane-svg {
-  height: 100%;
-  max-height: 100%;
-  width: auto;
-  opacity: 0.35;
+  height: 100%; max-height: 100%; width: auto;
 }
 
 .plane-body {
-  fill: url(#none);
   fill: rgba(0, 212, 255, 0.08);
-  stroke: var(--acc);
-  stroke-width: 2;
+  stroke: var(--acc); stroke-width: 2;
 }
 
 .plane-wing, .plane-tail, .plane-cockpit {
   fill: rgba(0, 212, 255, 0.05);
-  stroke: var(--acc);
-  stroke-width: 1.5;
+  stroke: var(--acc); stroke-width: 1.5;
 }
 
-/* طبقة الكراسي فوق الطيارة */
 .seats-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+  position: absolute; inset: 0; pointer-events: none;
 }
 
 .seat {
   position: absolute;
-  width: 26px; height: 26px;
+  width: 24px; height: 24px;
   border-radius: 6px;
   transform: translate(-50%, -50%);
   cursor: pointer;
   pointer-events: auto;
   display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 700; color: #fff;
+  font-size: 9px; font-weight: 700; color: #fff;
   transition: 0.2s;
   border: 1.5px solid rgba(255, 255, 255, 0.2);
 }
 
 .seat.safe {
   background: linear-gradient(135deg, rgba(0, 255, 157, 0.6), rgba(0, 200, 120, 0.6));
-  box-shadow: 0 0 8px rgba(0, 255, 157, 0.4);
 }
 
 .seat.warn {
   background: linear-gradient(135deg, rgba(255, 184, 0, 0.7), rgba(200, 140, 0, 0.7));
-  box-shadow: 0 0 12px rgba(255, 184, 0, 0.5);
+  box-shadow: 0 0 10px rgba(255, 184, 0, 0.5);
 }
 
 .seat.danger {
   background: linear-gradient(135deg, rgba(255, 45, 85, 0.9), rgba(200, 20, 60, 0.9));
-  box-shadow: 0 0 16px rgba(255, 45, 85, 0.8);
+  box-shadow: 0 0 14px rgba(255, 45, 85, 0.8);
   animation: seatBlink 1.2s infinite;
 }
 
@@ -365,39 +357,29 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
   50% { transform: translate(-50%, -50%) scale(1.15); }
 }
 
-.seat:hover {
+.seat:hover, .seat.selected {
   transform: translate(-50%, -50%) scale(1.3);
   z-index: 10;
-  box-shadow: 0 0 24px rgba(0, 212, 255, 0.8);
-}
-
-.seat.selected {
-  outline: 3px solid var(--acc);
-  outline-offset: 2px;
-  transform: translate(-50%, -50%) scale(1.35);
-  z-index: 11;
+  outline: 2px solid var(--acc);
 }
 
 /* تفاصيل الراكب */
 .pass-detail {
   background: var(--card);
   border: 1px solid var(--bd);
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 18px;
+  padding: 20px;
   overflow-y: auto;
 }
 
 .pd-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 100%; color: var(--dim); gap: 16px; text-align: center;
+  height: 100%; color: var(--dim); gap: 14px; text-align: center;
 }
 
-.pd-empty-icon { font-size: 64px; opacity: 0.3; }
+.pd-empty-icon { font-size: 56px; opacity: 0.3; }
 
-/* بطاقة الراكب */
-.pd-card {
-  animation: slideIn 0.3s ease;
-}
+.pd-card { animation: slideIn 0.3s ease; }
 
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -405,40 +387,28 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 }
 
 .pd-avatar {
-  width: 80px; height: 80px; border-radius: 50%;
+  width: 72px; height: 72px; border-radius: 50%;
   background: linear-gradient(135deg, var(--acc), var(--acc2));
   display: flex; align-items: center; justify-content: center;
-  font-size: 32px; font-weight: 900; color: #000;
-  margin: 0 auto 16px;
+  font-size: 26px; font-weight: 900; color: #000;
+  margin: 0 auto 14px;
   box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
 }
 
-.pd-avatar.warn {
-  background: linear-gradient(135deg, var(--wrn), #ff8c00);
-  box-shadow: 0 0 30px rgba(255, 184, 0, 0.5);
-}
+.pd-avatar.warn { background: linear-gradient(135deg, var(--wrn), #ff8c00); }
+.pd-avatar.danger { background: linear-gradient(135deg, var(--dgr), #ff6b3d); }
 
-.pd-avatar.danger {
-  background: linear-gradient(135deg, var(--dgr), #ff6b3d);
-  box-shadow: 0 0 30px rgba(255, 45, 85, 0.6);
-}
-
-.pd-name {
-  text-align: center; font-size: 22px; font-weight: 900;
-  margin-bottom: 6px;
-}
+.pd-name { text-align: center; font-size: 19px; font-weight: 900; margin-bottom: 4px; }
 
 .pd-seat {
-  text-align: center; font-size: 14px;
-  color: var(--acc); font-family: 'Orbitron', monospace;
-  margin-bottom: 20px; letter-spacing: 2px;
+  text-align: center; font-size: 13px; color: var(--acc);
+  font-family: 'Orbitron', monospace; margin-bottom: 16px; letter-spacing: 2px;
 }
 
 .pd-status-badge {
-  display: block; text-align: center;
-  padding: 8px 16px; border-radius: 20px;
-  font-weight: 800; font-size: 13px;
-  margin-bottom: 20px; width: fit-content; margin-inline: auto;
+  display: block; text-align: center; padding: 6px 14px; border-radius: 20px;
+  font-weight: 800; font-size: 12px; margin-bottom: 16px;
+  width: fit-content; margin-inline: auto;
 }
 
 .pd-status-badge.safe { background: rgba(0, 255, 157, 0.15); color: var(--acc2); }
@@ -446,31 +416,28 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 .pd-status-badge.danger { background: rgba(255, 45, 85, 0.2); color: var(--dgr); }
 
 .pd-section {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
+  margin-bottom: 16px; padding-bottom: 16px;
   border-bottom: 1px solid var(--bd);
 }
 
 .pd-section:last-child { border: none; margin-bottom: 0; }
 
 .pd-section-title {
-  font-size: 13px; color: var(--dim);
-  margin-bottom: 12px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1px;
+  font-size: 11px; color: var(--dim); margin-bottom: 10px;
+  font-weight: 700; letter-spacing: 1px;
 }
 
 .pd-data-row {
   display: flex; align-items: center; gap: 10px;
-  padding: 10px 0; font-size: 14px;
+  padding: 8px 0; font-size: 13px;
 }
 
 .pd-data-row .lbl { color: var(--dim); flex: 1; }
 .pd-data-row .val { color: var(--txt); font-weight: 700; }
 
-/* شريط التقدم */
 .pd-bar {
-  height: 8px; background: var(--bg2); border-radius: 10px;
-  overflow: hidden; margin-top: 6px;
+  height: 7px; background: var(--bg2); border-radius: 10px;
+  overflow: hidden; margin-top: 5px;
 }
 
 .pd-bar-fill {
@@ -484,37 +451,32 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 
 /* ============ الإنذارات ============ */
 .section-header {
-  padding: 22px 26px; border-bottom: 1px solid var(--bd);
+  padding: 18px 22px; border-bottom: 1px solid var(--bd);
   background: linear-gradient(180deg, var(--bg2), transparent);
 }
 
-.section-header h2 { font-size: 22px; color: var(--txt); }
+.section-header h2 { font-size: 19px; color: var(--txt); }
 
 .alerts-list {
-  padding: 22px 26px;
-  display: flex; flex-direction: column; gap: 12px;
+  padding: 18px 22px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 
 .alert-item {
-  background: var(--card);
-  border: 1px solid var(--bd);
-  border-radius: 14px;
-  padding: 16px 20px;
-  display: flex; align-items: center; gap: 14px;
-  cursor: pointer;
-  transition: 0.2s;
+  background: var(--card); border: 1px solid var(--bd);
+  border-radius: 12px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: 0.2s;
 }
 
-.alert-item:hover { border-color: var(--acc); transform: translateX(4px); }
+.alert-item:hover { border-color: var(--acc); }
 
 .alert-item.warn {
-  border-color: var(--wrn);
-  background: rgba(255, 184, 0, 0.06);
+  border-color: var(--wrn); background: rgba(255, 184, 0, 0.06);
 }
 
 .alert-item.danger {
-  border-color: var(--dgr);
-  background: rgba(255, 45, 85, 0.08);
+  border-color: var(--dgr); background: rgba(255, 45, 85, 0.08);
   animation: alertPulse 1.5s infinite;
 }
 
@@ -523,101 +485,210 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
   50% { box-shadow: 0 0 20px rgba(255, 45, 85, 0.4); }
 }
 
-.alert-icon { font-size: 26px; }
+.alert-icon { font-size: 22px; }
 .alert-body { flex: 1; }
-.alert-title { font-weight: 800; font-size: 14px; margin-bottom: 4px; }
+.alert-title { font-weight: 800; font-size: 13px; margin-bottom: 3px; }
 
 .alert-time {
-  font-size: 11px; color: var(--dim);
+  font-size: 10px; color: var(--dim);
   font-family: 'Orbitron', monospace;
 }
 
 .alert-empty {
   text-align: center; color: var(--dim);
-  padding: 60px 20px; font-size: 15px;
+  padding: 50px 20px; font-size: 14px;
 }
 
 /* ============ السجل ============ */
 .log-list {
-  padding: 22px 26px;
-  display: flex; flex-direction: column; gap: 8px;
-  font-family: 'Orbitron', monospace; font-size: 13px;
+  padding: 18px 22px;
+  display: flex; flex-direction: column; gap: 6px;
+  font-family: 'Orbitron', monospace; font-size: 12px;
 }
 
 .log-item {
   background: var(--card); border: 1px solid var(--bd);
-  border-radius: 10px; padding: 12px 16px;
-  display: flex; gap: 16px; align-items: center;
+  border-radius: 10px; padding: 10px 14px;
+  display: flex; gap: 12px; align-items: center;
 }
 
 .log-time { color: var(--acc2); font-weight: 700; }
 .log-msg { color: var(--txt); }
 
-/* ============ Marker الطيارة ============ */
-.plane-marker {
-  font-size: 32px;
-  filter: drop-shadow(0 0 12px var(--acc));
-}
-
-/* ============ Modal ============ */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(6px);
-  z-index: 5000;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.modal.on {
-  display: flex;
-  animation: fadeIn 0.2s;
-}
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-.modal-box {
-  background: var(--card);
-  border: 1px solid var(--bd);
-  border-radius: 20px;
-  padding: 30px;
-  max-width: 500px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.modal-close {
-  position: absolute;
-  top: 16px;
-  inset-inline-end: 16px;
-  background: var(--bg2);
-  border: 1px solid var(--bd);
-  color: var(--txt);
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 16px;
-  transition: 0.2s;
-}
-
-.modal-close:hover {
-  background: var(--dgr);
-  color: #fff;
-}
-
 /* ============ Scrollbar ============ */
-::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--bd); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--acc); }
+
+/* ============================================================
+   RESPONSIVE — موبايل وتابلت
+   ============================================================ */
+
+/* تابلت */
+@media (max-width: 1024px) {
+  .sidebar { width: 240px; }
+  .pass-layout { grid-template-columns: 1fr 320px; }
+  .pd-avatar { width: 64px; height: 64px; font-size: 22px; }
+}
+
+/* موبايل كبير / تابلت صغير */
+@media (max-width: 768px) {
+
+  .topbar {
+    height: 50px;
+    padding: 0 12px;
+  }
+
+  .logo-txt { font-size: 15px; letter-spacing: 2px; }
+  .logo-emoji { font-size: 18px; }
+
+  .clock { font-size: 11px; padding: 6px 8px; }
+  .icon-btn { font-size: 11px; padding: 6px 8px; }
+
+  /* الـ Sidebar يتحول لشريط علوي أفقي */
+  .main { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 40vh;
+    flex-direction: column;
+    border-inline-end: none;
+    border-bottom: 1px solid var(--bd);
+    padding: 10px;
+    gap: 8px;
+    overflow-y: auto;
+    order: 2;
+    flex-shrink: 0;
+  }
+
+  .content { order: 1; flex: 1; min-height: 50vh; }
+
+  /* بيانات الرحلة تبقى صغيرة أفقية */
+  .side-flight {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .side-flight-title {
+    width: 100%;
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+
+  .side-flight-no {
+    width: 100%;
+    margin-bottom: 4px;
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  .side-row {
+    flex: 1 1 45%;
+    padding: 5px 0;
+    font-size: 11px;
+  }
+
+  /* الـ Nav أفقي */
+  .nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+
+  .nav-item {
+    flex-shrink: 0;
+    flex-direction: column;
+    padding: 8px 12px;
+    font-size: 11px;
+    min-width: 70px;
+    text-align: center;
+    gap: 4px;
+  }
+
+  .nav-item span:first-child { font-size: 18px; }
+  .nav-item.active { border-inline-start: none; border-bottom: 3px solid var(--acc); }
+
+  .badge {
+    position: absolute;
+    top: 2px;
+    inset-inline-end: 4px;
+    font-size: 9px;
+    padding: 1px 6px;
+  }
+
+  .status-box { display: none; }
+
+  /* زر الطوارئ أصغر */
+  .emg-btn {
+    bottom: 16px;
+    inset-inline-start: 16px;
+    padding: 12px 18px;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+
+  /* تبويب الركاب — عمودي */
+  .pass-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .plane-wrap { padding: 10px; border-radius: 14px; }
+  .plane-header h2 { font-size: 15px; }
+  .legend { font-size: 10px; gap: 8px; }
+
+  .pass-detail {
+    max-height: 45vh;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .seat { width: 18px; height: 18px; font-size: 8px; border-radius: 4px; }
+
+  .pd-avatar { width: 56px; height: 56px; font-size: 20px; }
+  .pd-name { font-size: 17px; }
+
+  .section-header { padding: 14px; }
+  .section-header h2 { font-size: 17px; }
+  .alerts-list, .log-list { padding: 14px; }
+  .alert-item { padding: 12px; }
+}
+
+/* موبايل صغير */
+@media (max-width: 480px) {
+
+  .login-box { padding: 36px 26px; }
+  .login-logo h1 { font-size: 26px; letter-spacing: 4px; }
+  .logo-icon { font-size: 50px; }
+  .login-logo p { font-size: 12px; }
+
+  .topbar { padding: 0 10px; height: 46px; }
+  .logo-txt { font-size: 13px; }
+  .clock { display: none; }
+
+  .emg-btn { padding: 10px 14px; font-size: 12px; }
+
+  .seat { width: 15px; height: 15px; font-size: 7px; }
+
+  .pd-avatar { width: 48px; height: 48px; font-size: 18px; }
+  .pd-name { font-size: 15px; }
+  .pd-section-title { font-size: 10px; }
+  .pd-data-row { font-size: 12px; }
+
+  .nav-item { min-width: 60px; padding: 6px 8px; font-size: 10px; }
+  .nav-item span:first-child { font-size: 16px; }
+}
+
+/* شاشات أفقية قصيرة */
+@media (max-height: 500px) and (orientation: landscape) {
+  .sidebar { max-height: 45vh; }
+  .pass-detail { max-height: 40vh; }
+}
