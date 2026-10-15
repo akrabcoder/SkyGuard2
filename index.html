@@ -53,7 +53,7 @@
     <!-- Sidebar -->
     <aside class="sidebar">
 
-      <!-- بيانات الرحلة (بره الخريطة) -->
+      <!-- بيانات الرحلة -->
       <div class="side-flight">
         <div class="side-flight-title">
           ✈️ <span data-i18n="flightInfo">بيانات الرحلة</span>
@@ -63,6 +63,20 @@
           <span class="sep">|</span>
           <span id="routeTxt">CAI → LHR</span>
         </div>
+
+        <!-- اختيار مطار الإقلاع -->
+        <div class="side-field">
+          <label data-i18n="chooseFrom">🛫 مطار الإقلاع</label>
+          <select id="fromSelect" class="airport-select" onchange="changeFrom(this.value)"></select>
+        </div>
+
+        <!-- اختيار مطار الهبوط -->
+        <div class="side-field">
+          <label data-i18n="chooseTo">🛬 مطار الهبوط</label>
+          <select id="toSelect" class="airport-select" onchange="changeTo(this.value)"></select>
+        </div>
+
+        <!-- بيانات -->
         <div class="side-row">
           <span data-i18n="from">من</span>
           <b id="fromTxt">Cairo (CAI)</b>
@@ -182,6 +196,7 @@
   </div>
 </div>
 
+<script src="airports.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>
