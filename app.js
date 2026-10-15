@@ -6,6 +6,7 @@ let map, planeMarker, routeLine, emergencyRoute;
 let planeLat, planeLng, progress = 0;
 let emergencyMode = false;
 let nearestAirportMarker = null;
+let animFrameId = null;
 
 let lang = localStorage.getItem('sg_lang') || 'ar';
 let soundOn = true;
@@ -22,10 +23,10 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.getAttribute('data-i18n'));
   });
-  document.getElementById('langLbl').textContent = lang === 'ar' ? 'EN' : 'ع';
+  const ll = document.getElementById('langLbl');
+  if (ll) ll.textContent = lang === 'ar' ? 'EN' : 'ع';
   localStorage.setItem('sg_lang', lang);
 
-  renderPassengers();
   renderAlerts();
   renderLog();
   if (selectedPassenger) showPassengerDetail(selectedPassenger.id);
@@ -48,12 +49,11 @@ function login() {
     document.getElementById('app').classList.add('on');
     setTimeout(() => {
       initMap();
-      renderPassengers();
       renderAlerts();
       renderLog();
       addLog('Pilot ' + id + ' logged in');
       startMonitoring();
-    }, 100);
+    }, 120);
     startClock();
     playBeep(900, 200);
   } else {
@@ -65,7 +65,8 @@ function login() {
 function startClock() {
   setInterval(() => {
     const d = new Date();
-    document.getElementById('clock').textContent =
+    const el = document.getElementById('clock');
+    if (el) el.textContent =
       String(d.getHours()).padStart(2, '0') + ':' +
       String(d.getMinutes()).padStart(2, '0') + ':' +
       String(d.getSeconds()).padStart(2, '0');
@@ -110,99 +111,180 @@ function go(tab, btn) {
   document.querySelectorAll('.tab').forEach(c => c.classList.remove('on'));
   document.getElementById('t-' + tab).classList.add('on');
 
-  if (tab === 'map' && map) setTimeout(() => map.invalidateSize(), 100);
-  if (tab === 'pass') renderSeats();
+  if (tab === 'map' && map) {
+    setTimeout(() => map.resize(), 150);
+  }
+  if (tab === 'pass') setTimeout(renderSeats, 100);
   if (tab === 'alerts') renderAlerts();
   if (tab === 'log') renderLog();
 }
 
-/* ============ الخريطة ============ */
+/* ============================================
+   الخريطة — MapLibre GL (سحب سلس زي جوجل مابس)
+   ============================================ */
 function initMap() {
   const start = AIRPORTS[FLIGHT.from];
   const dest = AIRPORTS[FLIGHT.to];
 
-  map = L.map('map', {
-    center: [42, 15],
-    zoom: 4,
-    zoomControl: true,
+  map = new maplibregl.Map({
+    container: 'map',
+    style: {
+      version: 8,
+      sources: {
+        'satellite': {
+          type: 'raster',
+          tiles: [
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+          ],
+          tileSize: 256,
+          attribution: 'Esri World Imagery'
+        },
+        'labels': {
+          type: 'raster',
+          tiles: [
+            'https://stamen-tiles.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}.png'
+          ],
+          tileSize: 256
+        }
+      },
+      layers: [
+        { id: 'satellite-layer', type: 'raster', source: 'satellite', minzoom: 0, maxzoom: 19 },
+        { id: 'labels-layer', type: 'raster', source: 'labels', minzoom: 0, maxzoom: 19, paint: { 'raster-opacity': 0.7 } }
+      ]
+    },
+    center: [15, 42],
+    zoom: 3.5,
+    minZoom: 1.5,
+    maxZoom: 18,
+    dragRotate: false,
+    pitchWithRotate: false,
+    touchPitch: false,
     attributionControl: false,
-    dragging: true,
-    scrollWheelZoom: true,
-    doubleClickZoom: true,
-    touchZoom: true,
-    boxZoom: true,
-    keyboard: true
+    antialias: true,
+    fadeDuration: 100
   });
 
-  // صور القمر الصناعي — Esri World Imagery
-  L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    { maxZoom: 19 }
-  ).addTo(map);
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
+  map.addControl(new maplibregl.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-right');
 
-  // طبقة أسماء المدن فوق
-  L.tileLayer(
-    'https://stamen-tiles.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}.png',
-    { maxZoom: 19, opacity: 0.7 }
-  ).addTo(map);
-
-  // كل المطارات
-  Object.keys(AIRPORTS).forEach(code => {
-    const a = AIRPORTS[code];
-    let color = '#00d4ff', radius = 4;
-    if (code === FLIGHT.from) { color = '#00ff9d'; radius = 8; }
-    if (code === FLIGHT.to) { color = '#00d4ff'; radius = 8; }
-
-    const marker = L.circleMarker([a.lat, a.lng], {
-      radius, color, fillColor: color, fillOpacity: 0.9, weight: 2
-    }).addTo(map);
-
-    const label = lang === 'ar' ? a.nameAr : a.name;
-    marker.bindPopup(
-      `<b>${label} (${code})</b>` +
-      (code === FLIGHT.from ? '<br>🛫 ' + t('from') : '') +
-      (code === FLIGHT.to ? '<br>🛬 ' + t('to') : '')
-    );
+  map.on('load', () => {
+    drawAirports();
+    drawRoute();
+    drawPlane();
+    startPlaneAnimation();
   });
-
-  // خط الرحلة
-  routeLine = L.polyline(
-    [[start.lat, start.lng], [dest.lat, dest.lng]],
-    { color: '#00d4ff', weight: 2, dashArray: '8,8', opacity: 0.8 }
-  ).addTo(map);
-
-  // أيقونة الطيارة
-  const planeIcon = L.divIcon({
-    className: '',
-    html: '<div class="plane-marker">✈️</div>',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
-  });
-
-  planeLat = start.lat;
-  planeLng = start.lng;
-  planeMarker = L.marker([planeLat, planeLng], { icon: planeIcon }).addTo(map);
-
-  movePlane();
 }
 
-function movePlane() {
+/* ============ رسم المطارات ============ */
+function drawAirports() {
+  Object.keys(AIRPORTS).forEach(code => {
+    const a = AIRPORTS[code];
+
+    let color = '#00d4ff';
+    let size = 6;
+    if (code === FLIGHT.from) { color = '#00ff9d'; size = 10; }
+    if (code === FLIGHT.to) { color = '#00d4ff'; size = 10; }
+
+    const el = document.createElement('div');
+    el.style.cssText = `
+      width: ${size}px; height: ${size}px;
+      background: ${color};
+      border-radius: 50%;
+      box-shadow: 0 0 12px ${color}, 0 0 4px #fff;
+      border: 2px solid rgba(255,255,255,0.9);
+      cursor: pointer;
+    `;
+
+    const label = lang === 'ar' ? a.nameAr : a.name;
+
+    const popup = new maplibregl.Popup({ offset: 15, closeButton: false })
+      .setHTML(`<div style="font-family:Cairo,sans-serif;padding:4px 8px;direction:${lang==='ar'?'rtl':'ltr'}">
+        <b style="color:${color}">${label} (${code})</b>
+        ${code === FLIGHT.from ? '<br>🛫 ' + t('from') : ''}
+        ${code === FLIGHT.to ? '<br>🛬 ' + t('to') : ''}
+      </div>`);
+
+    new maplibregl.Marker({ element: el })
+      .setLngLat([a.lng, a.lat])
+      .setPopup(popup)
+      .addTo(map);
+  });
+}
+
+/* ============ رسم المسار ============ */
+function drawRoute() {
   const start = AIRPORTS[FLIGHT.from];
   const dest = AIRPORTS[FLIGHT.to];
 
-  setInterval(() => {
-    if (emergencyMode || progress >= 1) return;
-    progress += 0.0015;
-    if (progress > 1) progress = 1;
+  if (map.getSource('route')) {
+    map.getSource('route').setData({
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: [[start.lng, start.lat], [dest.lng, dest.lat]] }
+    });
+    return;
+  }
 
-    planeLat = start.lat + (dest.lat - start.lat) * progress;
-    planeLng = start.lng + (dest.lng - start.lng) * progress;
-    planeMarker.setLatLng([planeLat, planeLng]);
+  map.addSource('route', {
+    type: 'geojson',
+    data: {
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: [[start.lng, start.lat], [dest.lng, dest.lat]] }
+    }
+  });
 
-    const remainH = Math.max(0, Math.round((1 - progress) * 5));
-    const etaEl = document.getElementById('etaTxt');
-    if (etaEl) etaEl.textContent = remainH + 'h';
-  }, 100);
+  map.addLayer({
+    id: 'route-line',
+    type: 'line',
+    source: 'route',
+    paint: {
+      'line-color': '#00d4ff',
+      'line-width': 2,
+      'line-dasharray': [3, 3],
+      'line-opacity': 0.8
+    }
+  });
+}
+
+/* ============ أيقونة الطيارة ============ */
+function drawPlane() {
+  const start = AIRPORTS[FLIGHT.from];
+  planeLat = start.lat;
+  planeLng = start.lng;
+
+  const el = document.createElement('div');
+  el.innerHTML = '✈️';
+  el.style.cssText = `
+    font-size: 32px;
+    filter: drop-shadow(0 0 12px #00d4ff);
+    cursor: pointer;
+  `;
+
+  planeMarker = new maplibregl.Marker({ element: el })
+    .setLngLat([planeLng, planeLat])
+    .addTo(map);
+}
+
+/* ============ حركة الطيارة ============ */
+function startPlaneAnimation() {
+  const start = AIRPORTS[FLIGHT.from];
+  const dest = AIRPORTS[FLIGHT.to];
+
+  function animate() {
+    if (!emergencyMode && progress < 1) {
+      progress += 0.0008;
+      if (progress > 1) progress = 1;
+
+      planeLat = start.lat + (dest.lat - start.lat) * progress;
+      planeLng = start.lng + (dest.lng - start.lng) * progress;
+      planeMarker.setLngLat([planeLng, planeLat]);
+
+      const remainH = Math.max(0, Math.round((1 - progress) * 5));
+      const etaEl = document.getElementById('etaTxt');
+      if (etaEl) etaEl.textContent = remainH + 'h';
+    }
+    animFrameId = requestAnimationFrame(animate);
+  }
+  animate();
 }
 
 /* ============ الطوارئ ============ */
@@ -212,8 +294,10 @@ function emergency() {
   playAlarm();
 
   const btn = document.querySelector('.emg-btn');
-  btn.classList.add('activated');
-  btn.innerHTML = '🚨 ' + t('emg') + ' ✓';
+  if (btn) {
+    btn.classList.add('activated');
+    btn.innerHTML = '🚨 ' + t('emg') + ' ✓';
+  }
 
   let nearest = null, minDist = Infinity;
   Object.keys(AIRPORTS).forEach(code => {
@@ -227,31 +311,64 @@ function emergency() {
   addLog('📍 Nearest: ' + nearest.name + ' (' + nearest.code + ')');
   addLog('🛬 Autopilot engaged');
   addAlert('danger', '🚨 ' + t('emergencyOn'), null);
-  addAlert('warn', '📍 ' + t('nearest') + ': ' + (lang === 'ar' ? nearest.nameAr : nearest.name) + ' (' + nearest.code + ') — ' + nearest.dist + ' km', null);
+  addAlert('warn', '📍 ' + t('nearest') + ': ' +
+    (lang === 'ar' ? nearest.nameAr : nearest.name) +
+    ' (' + nearest.code + ') — ' + nearest.dist + ' km', null);
 
-  if (routeLine) routeLine.setStyle({ color: '#ff2d55', weight: 3, dashArray: '4,6' });
+  // مسار أحمر
+  if (map.getLayer('route-line')) {
+    map.setPaintProperty('route-line', 'line-color', '#ff2d55');
+    map.setPaintProperty('route-line', 'line-width', 3);
+    map.setPaintProperty('route-line', 'line-dasharray', [2, 2]);
+  }
 
-  emergencyRoute = L.polyline(
-    [[planeLat, planeLng], [nearest.lat, nearest.lng]],
-    { color: '#ff2d55', weight: 4, opacity: 0.9 }
-  ).addTo(map);
+  // خط الطوارئ
+  if (!map.getSource('emg-route')) {
+    map.addSource('emg-route', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: [[planeLng, planeLat], [nearest.lng, nearest.lat]] }
+      }
+    });
+    map.addLayer({
+      id: 'emg-line',
+      type: 'line',
+      source: 'emg-route',
+      paint: { 'line-color': '#ff2d55', 'line-width': 4, 'line-opacity': 0.9 }
+    });
+  }
 
-  nearestAirportMarker = L.circleMarker([nearest.lat, nearest.lng], {
-    radius: 14, color: '#ff2d55', fillColor: '#ff2d55',
-    fillOpacity: 0.7, weight: 3
-  }).addTo(map).bindPopup('🆘 ' + t('nearest') + ': ' + nearest.name).openPopup();
+  // علامة المطار الأقرب
+  const mEl = document.createElement('div');
+  mEl.style.cssText = `
+    width: 20px; height: 20px;
+    background: #ff2d55;
+    border-radius: 50%;
+    box-shadow: 0 0 20px #ff2d55, 0 0 8px #fff;
+    border: 3px solid #fff;
+    animation: pulse 1s infinite;
+  `;
 
+  new maplibregl.Marker({ element: mEl })
+    .setLngLat([nearest.lng, nearest.lat])
+    .setPopup(new maplibregl.Popup({ offset: 15 })
+      .setHTML(`<b style="color:#ff2d55">🆘 ${t('nearest')}: ${nearest.name}</b>`))
+    .addTo(map);
+
+  // حرّك الطيارة
   const fromLat = planeLat, fromLng = planeLng;
   let p = 0;
   const timer = setInterval(() => {
-    p += 0.006;
+    p += 0.005;
     if (p >= 1) { clearInterval(timer); addLog('🛬 Landed at ' + nearest.name); return; }
-    planeMarker.setLatLng([
-      fromLat + (nearest.lat - fromLat) * p,
-      fromLng + (nearest.lng - fromLng) * p
+    planeMarker.setLngLat([
+      fromLng + (nearest.lng - fromLng) * p,
+      fromLat + (nearest.lat - fromLat) * p
     ]);
   }, 100);
 
+  // تحديث اللوحة
   const toEl = document.getElementById('toTxt');
   if (toEl) toEl.textContent = nearest.name + ' (' + nearest.code + ')';
   const routeEl = document.getElementById('routeTxt');
@@ -265,39 +382,29 @@ function emergency() {
   renderAlerts();
 }
 
-/* ============ الكراسي على شكل الطيارة ============ */
+/* ============ الكراسي ============ */
 function renderSeats() {
   const layer = document.getElementById('seatsLayer');
   if (!layer) return;
 
-  // نحدد أبعاد الطيارة داخل الـ SVG wrapper
   const wrap = document.querySelector('.plane-svg-wrap');
+  if (!wrap) return;
   const wrapW = wrap.offsetWidth;
   const wrapH = wrap.offsetHeight;
 
-  // حدود جسم الطيارة داخل الـ SVG (viewBox 400 x 1200)
-  // body: x من 120 لـ 280 (عرض 160)، y من 140 لـ 900 (منطقة الكراسي)
-  const svgX0 = 120, svgX1 = 280;
-  const svgY0 = 150, svgY1 = 900;
-
+  const svgX0 = 120, svgX1 = 280, svgY0 = 150, svgY1 = 900;
   const scaleX = wrapW / 400;
   const scaleY = wrapH / 1200;
 
-  // عدد الصفوف = 9
-  const rows = 9;
-  const cols = 6;
-
+  const rows = 9, cols = 6;
   layer.innerHTML = '';
 
   PASSENGERS.forEach(p => {
     const r = p.row - 1;
     const c = p.letter.charCodeAt(0) - 65;
 
-    // نسب داخل منطقة الكراسي
     const rowRatio = r / (rows - 1 || 1);
     const colRatio = c / (cols - 1 || 1);
-
-    // الممر في المنتصف — نعمل فراغ بين العمود C و D
     const aisleGap = 0.06;
     let colPos = colRatio;
     if (c >= 3) colPos += aisleGap;
@@ -305,20 +412,14 @@ function renderSeats() {
     const svgX = svgX0 + colPos * (svgX1 - svgX0 - aisleGap * (svgX1 - svgX0));
     const svgY = svgY0 + rowRatio * (svgY1 - svgY0);
 
-    const left = svgX * scaleX;
-    const top = svgY * scaleY;
-
     const el = document.createElement('div');
     el.className = 'seat ' + p.status;
     if (selectedPassenger && selectedPassenger.id === p.id) el.classList.add('selected');
-    el.style.left = left + 'px';
-    el.style.top = top + 'px';
+    el.style.left = (svgX * scaleX) + 'px';
+    el.style.top = (svgY * scaleY) + 'px';
     el.textContent = p.seat;
     el.title = p.name + ' — ' + p.seat;
-    el.onclick = (e) => {
-      e.stopPropagation();
-      selectPassenger(p.id);
-    };
+    el.onclick = (e) => { e.stopPropagation(); selectPassenger(p.id); };
     layer.appendChild(el);
   });
 }
@@ -337,10 +438,10 @@ function showPassengerDetail(id) {
   const p = PASSENGERS.find(x => x.id === id);
   if (!p) return;
   const box = document.getElementById('passDetail');
+  if (!box) return;
 
   const statusText = t(p.status);
   const initials = p.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-
   const stressCls = p.stress > 75 ? 'danger' : (p.stress > 50 ? 'warn' : '');
   const moveCls = p.movement > 75 ? 'danger' : (p.movement > 50 ? 'warn' : '');
   const pulseCls = p.pulse > 110 ? 'danger' : (p.pulse > 90 ? 'warn' : '');
@@ -348,8 +449,6 @@ function showPassengerDetail(id) {
   const aiMsg = p.status === 'danger' ? t('criticalBehavior')
               : p.status === 'warn' ? t('suspiciousBehavior')
               : t('normalBehavior');
-
-  const dest = lang === 'ar' ? p.destination : p.destination;
 
   box.innerHTML = `
     <div class="pd-card">
@@ -364,7 +463,7 @@ function showPassengerDetail(id) {
         <div class="pd-data-row"><span class="lbl">${t('nationality')}</span><span class="val">${p.nationality}</span></div>
         <div class="pd-data-row"><span class="lbl">${t('passport')}</span><span class="val">${p.passport}</span></div>
         <div class="pd-data-row"><span class="lbl">${t('ticket')}</span><span class="val">${p.ticket}</span></div>
-        <div class="pd-data-row"><span class="lbl">${t('destination')}</span><span class="val">${dest}</span></div>
+        <div class="pd-data-row"><span class="lbl">${t('destination')}</span><span class="val">${p.destination}</span></div>
         <div class="pd-data-row"><span class="lbl">${t('class')}</span><span class="val">${t(p.seatClass)}</span></div>
       </div>
 
@@ -395,17 +494,12 @@ function showPassengerDetail(id) {
 
       <div class="pd-section">
         <div class="pd-section-title">🧠 ${t('aiAnalysis')}</div>
-        <div style="color:${p.status === 'danger' ? 'var(--dgr)' : p.status === 'warn' ? 'var(--wrn)' : 'var(--acc2)'};font-weight:700;font-size:14px">
+        <div style="color:${p.status === 'danger' ? 'var(--dgr)' : p.status === 'warn' ? 'var(--wrn)' : 'var(--acc2)'};font-weight:700;font-size:13px">
           ${aiMsg}
         </div>
       </div>
     </div>
   `;
-}
-
-/* ============ عرض الركاب (الشبكة القديمة) ============ */
-function renderPassengers() {
-  renderSeats();
 }
 
 /* ============ الإنذارات ============ */
@@ -442,8 +536,9 @@ function renderAlerts() {
 function handleAlertClick(index) {
   const a = activeAlerts[index];
   if (a.passengerId) {
-    go('pass', document.querySelector('[onclick*="pass"]'));
-    setTimeout(() => selectPassenger(a.passengerId), 150);
+    const passBtn = document.querySelector('[onclick*="go(\'pass\'"]');
+    if (passBtn) go('pass', passBtn);
+    setTimeout(() => selectPassenger(a.passengerId), 200);
   }
 }
 
@@ -472,8 +567,10 @@ function renderLog() {
   `).join('');
 }
 
-/* ============ مراقبة الركاب (AI) ============ */
+/* ============ المراقبة (AI) ============ */
 function startMonitoring() {
+  updateBadges();
+
   setInterval(() => {
     const idx = Math.floor(Math.random() * PASSENGERS.length);
     const p = PASSENGERS[idx];
@@ -493,23 +590,25 @@ function startMonitoring() {
       playAlarm();
     }
 
-    renderSeats();
+    const passTab = document.getElementById('t-pass');
+    if (passTab && passTab.classList.contains('on')) renderSeats();
     if (selectedPassenger && selectedPassenger.id === p.id) showPassengerDetail(p.id);
     updateBadges();
   }, 6000);
-}
-
-/* ============ Modal ============ */
-function closeModal() {
-  document.getElementById('passModal').classList.remove('on');
 }
 
 /* ============ التشغيل ============ */
 window.addEventListener('DOMContentLoaded', () => {
   applyLang();
   addLog('SkyGuard initialized');
-  window.addEventListener('resize', () => { if (document.getElementById('t-pass').classList.contains('on')) renderSeats(); });
-  document.getElementById('ppass').addEventListener('keypress', e => {
+
+  window.addEventListener('resize', () => {
+    if (map) setTimeout(() => map.resize(), 100);
+    if (document.getElementById('t-pass').classList.contains('on')) renderSeats();
+  });
+
+  const pp = document.getElementById('ppass');
+  if (pp) pp.addEventListener('keypress', e => {
     if (e.key === 'Enter') login();
   });
 });
