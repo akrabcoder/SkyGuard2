@@ -23,11 +23,12 @@ const TR = {
     age: "العمر", class: "الدرجة", economy: "اقتصادية",
     business: "أعمال", first: "أولى",
     vitals: "المؤشرات الحيوية", info: "معلومات الراكب",
-    focusMap: "عرض على الخريطة",
     aiAnalysis: "تحليل الذكاء الاصطناعي",
     normalBehavior: "سلوك طبيعي",
     suspiciousBehavior: "سلوك مشبوه",
-    criticalBehavior: "تهديد محتمل"
+    criticalBehavior: "تهديد محتمل",
+    chooseFrom: "🛫 مطار الإقلاع",
+    chooseTo: "🛬 مطار الهبوط"
   },
   en: {
     sub: "Smart Flight Monitoring & Control System",
@@ -48,15 +49,16 @@ const TR = {
     age: "Age", class: "Class", economy: "Economy",
     business: "Business", first: "First",
     vitals: "Vitals", info: "Passenger Info",
-    focusMap: "Focus on map",
     aiAnalysis: "AI Analysis",
     normalBehavior: "Normal behavior",
     suspiciousBehavior: "Suspicious behavior",
-    criticalBehavior: "Potential threat"
+    criticalBehavior: "Potential threat",
+    chooseFrom: "🛫 Departure Airport",
+    chooseTo: "🛬 Arrival Airport"
   }
 };
 
-/* ============ المطارات ============ */
+/* ============ المطارات (للاستخدام الداخلي) ============ */
 const AIRPORTS = {
   CAI: { name: "Cairo", nameAr: "القاهرة", lat: 30.1114, lng: 31.4139 },
   LHR: { name: "London Heathrow", nameAr: "لندن هيثرو", lat: 51.4700, lng: -0.4543 },
