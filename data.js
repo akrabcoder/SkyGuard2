@@ -23,10 +23,11 @@ const TR = {
     age: "العمر", class: "الدرجة", economy: "اقتصادية",
     business: "أعمال", first: "أولى",
     vitals: "المؤشرات الحيوية", info: "معلومات الراكب",
-    flight: "بيانات الرحلة", focusMap: "عرض على الخريطة",
-    close: "إغلاق", aiAnalysis: "تحليل الذكاء الاصطناعي",
-    normalBehavior: "سلوك طبيعي", suspiciousBehavior: "سلوك مشبوه",
-    criticalBehavior: "تهديد محتمل", noActive: "لا توجد"
+    focusMap: "عرض على الخريطة",
+    aiAnalysis: "تحليل الذكاء الاصطناعي",
+    normalBehavior: "سلوك طبيعي",
+    suspiciousBehavior: "سلوك مشبوه",
+    criticalBehavior: "تهديد محتمل"
   },
   en: {
     sub: "Smart Flight Monitoring & Control System",
@@ -47,10 +48,11 @@ const TR = {
     age: "Age", class: "Class", economy: "Economy",
     business: "Business", first: "First",
     vitals: "Vitals", info: "Passenger Info",
-    flight: "Flight Info", focusMap: "Focus on map",
-    close: "Close", aiAnalysis: "AI Analysis",
-    normalBehavior: "Normal behavior", suspiciousBehavior: "Suspicious behavior",
-    criticalBehavior: "Potential threat", noActive: "None"
+    focusMap: "Focus on map",
+    aiAnalysis: "AI Analysis",
+    normalBehavior: "Normal behavior",
+    suspiciousBehavior: "Suspicious behavior",
+    criticalBehavior: "Potential threat"
   }
 };
 
@@ -110,7 +112,7 @@ const FLIGHT = {
   altitude: 11000
 };
 
-/* ============ أسماء الركاب ============ */
+/* ============ الأسماء ============ */
 const NAMES = [
   "Ahmed Mohamed", "Fatma Ali", "Mohamed Hassan", "Sara Ibrahim", "Omar Khaled",
   "Layla Youssef", "Youssef Ahmed", "Nour Abdullah", "Karim Sami", "Heba Mahmoud",
@@ -131,7 +133,10 @@ const NATIONALITIES = [
   "تركي / Turkish", "هندي / Indian", "صيني / Chinese", "ياباني / Japanese"
 ];
 
-const DESTINATIONS = ["London (LHR)", "Paris (CDG)", "New York (JFK)", "Dubai (DXB)", "Tokyo (NRT)", "Rome (FCO)"];
+const DESTINATIONS = [
+  "London (LHR)", "Paris (CDG)", "New York (JFK)",
+  "Dubai (DXB)", "Tokyo (NRT)", "Rome (FCO)"
+];
 
 /* ============ توليد الركاب ============ */
 const PASSENGERS = NAMES.map((name, i) => {
@@ -167,7 +172,6 @@ const PASSENGERS = NAMES.map((name, i) => {
     nationality: nationality,
     destination: destination,
     seatClass: seatClass,
-    status: status,
-    history: []
+    status: status
   };
 });
