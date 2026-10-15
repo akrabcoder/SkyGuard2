@@ -149,14 +149,14 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 
 /* ============ Sidebar ============ */
 .sidebar {
-  width: 280px;
+  width: 300px;
   background: linear-gradient(180deg, var(--bg2), var(--card));
   border-inline-end: 1px solid var(--bd);
-  display: flex; flex-direction: column; gap: 14px;
-  padding: 16px 12px; flex-shrink: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 14px 12px; flex-shrink: 0; overflow-y: auto;
 }
 
-/* لوحة بيانات الرحلة (بره الخريطة) */
+/* لوحة بيانات الرحلة */
 .side-flight {
   background: linear-gradient(160deg, var(--card2), var(--card));
   border: 1px solid var(--bd);
@@ -180,6 +180,42 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 
 .side-flight-no b { color: var(--acc); }
 
+/* حقل الاختيار */
+.side-field {
+  display: flex; flex-direction: column; gap: 5px;
+  margin-bottom: 10px;
+}
+
+.side-field label {
+  font-size: 11px; color: var(--dim); font-weight: 600;
+}
+
+.airport-select {
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: var(--txt);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+  transition: 0.2s;
+  width: 100%;
+}
+
+.airport-select:focus {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.15);
+}
+
+.airport-select option {
+  background: var(--card);
+  color: var(--txt);
+  padding: 8px;
+}
+
+/* صفوف البيانات */
 .side-row {
   display: flex; justify-content: space-between; align-items: center;
   font-size: 12px; padding: 7px 0;
@@ -525,14 +561,12 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
    RESPONSIVE — موبايل وتابلت
    ============================================================ */
 
-/* تابلت */
 @media (max-width: 1024px) {
-  .sidebar { width: 240px; }
+  .sidebar { width: 260px; }
   .pass-layout { grid-template-columns: 1fr 320px; }
   .pd-avatar { width: 64px; height: 64px; font-size: 22px; }
 }
 
-/* موبايل كبير / تابلت صغير */
 @media (max-width: 768px) {
 
   .topbar {
@@ -546,85 +580,90 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
   .clock { font-size: 11px; padding: 6px 8px; }
   .icon-btn { font-size: 11px; padding: 6px 8px; }
 
-  /* الـ Sidebar يتحول لشريط علوي أفقي */
-  .main { flex-direction: column; }
+  /* الـ Main يبقى عمودي */
+  .main {
+    flex-direction: column;
+    overflow: hidden;
+  }
 
+  /* المحتوى فوق */
+  .content {
+    order: 1;
+    flex: 1;
+    min-height: 55vh;
+    overflow: hidden;
+  }
+
+  /* الـ Sidebar تحت — يتحرك بسلاسة */
   .sidebar {
+    order: 2;
     width: 100%;
     height: auto;
-    max-height: 40vh;
+    max-height: 45vh;
     flex-direction: column;
     border-inline-end: none;
-    border-bottom: 1px solid var(--bd);
+    border-top: 1px solid var(--bd);
     padding: 10px;
     gap: 8px;
     overflow-y: auto;
-    order: 2;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     flex-shrink: 0;
+    touch-action: pan-y;
   }
 
-  .content { order: 1; flex: 1; min-height: 50vh; }
+  .side-flight { padding: 12px; }
+  .side-flight-title { padding-bottom: 8px; margin-bottom: 8px; font-size: 12px; }
+  .side-flight-no { margin-bottom: 8px; font-size: 12px; padding: 7px; }
 
-  /* بيانات الرحلة تبقى صغيرة أفقية */
-  .side-flight {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 10px;
-  }
+  .side-field { margin-bottom: 8px; }
+  .side-field label { font-size: 10px; }
 
-  .side-flight-title {
-    width: 100%;
-    padding-bottom: 6px;
-    margin-bottom: 4px;
+  .airport-select {
     font-size: 12px;
+    padding: 9px 10px;
   }
 
-  .side-flight-no {
-    width: 100%;
-    margin-bottom: 4px;
-    font-size: 12px;
-    padding: 6px;
-  }
-
-  .side-row {
-    flex: 1 1 45%;
-    padding: 5px 0;
-    font-size: 11px;
-  }
+  .side-row { padding: 6px 0; font-size: 12px; }
 
   /* الـ Nav أفقي */
   .nav {
     flex-direction: row;
     overflow-x: auto;
-    gap: 4px;
+    gap: 6px;
     padding-bottom: 4px;
+    scrollbar-width: none;
   }
+
+  .nav::-webkit-scrollbar { display: none; }
 
   .nav-item {
     flex-shrink: 0;
     flex-direction: column;
-    padding: 8px 12px;
+    padding: 8px 14px;
     font-size: 11px;
-    min-width: 70px;
+    min-width: 72px;
     text-align: center;
     gap: 4px;
+    border-radius: 12px;
   }
 
   .nav-item span:first-child { font-size: 18px; }
-  .nav-item.active { border-inline-start: none; border-bottom: 3px solid var(--acc); }
+  .nav-item.active {
+    border-inline-start: none;
+    border-bottom: 3px solid var(--acc);
+  }
 
   .badge {
     position: absolute;
-    top: 2px;
-    inset-inline-end: 4px;
+    top: 4px;
+    inset-inline-end: 6px;
     font-size: 9px;
     padding: 1px 6px;
   }
 
   .status-box { display: none; }
 
-  /* زر الطوارئ أصغر */
   .emg-btn {
     bottom: 16px;
     inset-inline-start: 16px;
@@ -636,22 +675,28 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
   /* تبويب الركاب — عمودي */
   .pass-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: auto auto;
     gap: 10px;
     padding: 10px;
+    height: auto;
   }
 
-  .plane-wrap { padding: 10px; border-radius: 14px; }
+  .plane-wrap {
+    padding: 12px;
+    border-radius: 14px;
+    min-height: 60vh;
+  }
+
   .plane-header h2 { font-size: 15px; }
   .legend { font-size: 10px; gap: 8px; }
 
   .pass-detail {
-    max-height: 45vh;
+    max-height: 50vh;
     padding: 14px;
     border-radius: 14px;
   }
 
-  .seat { width: 18px; height: 18px; font-size: 8px; border-radius: 4px; }
+  .seat { width: 20px; height: 20px; font-size: 8px; border-radius: 4px; }
 
   .pd-avatar { width: 56px; height: 56px; font-size: 20px; }
   .pd-name { font-size: 17px; }
@@ -660,9 +705,18 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
   .section-header h2 { font-size: 17px; }
   .alerts-list, .log-list { padding: 14px; }
   .alert-item { padding: 12px; }
+
+  .tab {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #t-map {
+    overflow: hidden;
+    height: 100%;
+  }
 }
 
-/* موبايل صغير */
 @media (max-width: 480px) {
 
   .login-box { padding: 36px 26px; }
@@ -672,23 +726,16 @@ html[lang="en"] body { font-family: 'Orbitron', sans-serif; }
 
   .topbar { padding: 0 10px; height: 46px; }
   .logo-txt { font-size: 13px; }
-  .clock { display: none; }
 
   .emg-btn { padding: 10px 14px; font-size: 12px; }
 
-  .seat { width: 15px; height: 15px; font-size: 7px; }
+  .seat { width: 16px; height: 16px; font-size: 7px; }
 
   .pd-avatar { width: 48px; height: 48px; font-size: 18px; }
   .pd-name { font-size: 15px; }
   .pd-section-title { font-size: 10px; }
   .pd-data-row { font-size: 12px; }
 
-  .nav-item { min-width: 60px; padding: 6px 8px; font-size: 10px; }
+  .nav-item { min-width: 62px; padding: 7px 10px; font-size: 10px; }
   .nav-item span:first-child { font-size: 16px; }
-}
-
-/* شاشات أفقية قصيرة */
-@media (max-height: 500px) and (orientation: landscape) {
-  .sidebar { max-height: 45vh; }
-  .pass-detail { max-height: 40vh; }
 }
