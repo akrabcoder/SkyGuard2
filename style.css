@@ -1,0 +1,707 @@
+/* ============================================
+   SkyGuard — التصميم الكامل
+   ============================================ */
+
+:root {
+  --bg: #060a14;
+  --bg2: #0b1220;
+  --card: #101a2e;
+  --card2: #16223a;
+  --bd: #1e2d4a;
+  --acc: #00d4ff;
+  --acc2: #00ff9d;
+  --dgr: #ff2d55;
+  --wrn: #ffb800;
+  --txt: #e8f1ff;
+  --dim: #7a8aa8;
+  --glow: 0 0 20px rgba(0, 212, 255, 0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  overflow: hidden;
+  height: 100vh;
+}
+
+html[lang="en"] body {
+  font-family: 'Orbitron', sans-serif;
+}
+
+/* ============ شاشة الدخول ============ */
+#login {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #0f1e3a 0%, #03060c 100%);
+  z-index: 3000;
+}
+
+#login::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+
+.login-box {
+  position: relative;
+  background: linear-gradient(160deg, var(--card) 0%, var(--card2) 100%);
+  border: 1px solid var(--bd);
+  border-radius: 24px;
+  padding: 50px 44px;
+  width: 420px;
+  box-shadow: 0 0 100px rgba(0, 212, 255, 0.15);
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.login-logo {
+  color: var(--acc);
+  margin-bottom: 34px;
+}
+
+.logo-icon {
+  font-size: 64px;
+  filter: drop-shadow(0 0 20px var(--acc));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.login-logo h1 {
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  margin-top: 14px;
+  background: linear-gradient(90deg, var(--acc), var(--acc2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-logo p {
+  color: var(--dim);
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.login-box input {
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 15px 18px;
+  color: var(--txt);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  margin-bottom: 14px;
+  transition: 0.25s;
+}
+
+.login-box input:focus {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+}
+
+.login-btn {
+  background: linear-gradient(90deg, var(--acc), var(--acc2));
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: 0.25s;
+  margin-top: 6px;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 34px rgba(0, 212, 255, 0.4);
+}
+
+.login-hint {
+  margin-top: 22px;
+  font-size: 12px;
+  color: var(--dim);
+  letter-spacing: 1px;
+}
+
+/* ============ التطبيق ============ */
+#app {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#app.on {
+  display: flex;
+}
+
+/* ============ Top Bar ============ */
+.topbar {
+  height: 64px;
+  background: linear-gradient(90deg, var(--bg2) 0%, var(--card) 100%);
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.tb-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-emoji {
+  font-size: 26px;
+  filter: drop-shadow(0 0 10px var(--acc));
+}
+
+.logo-txt {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  background: linear-gradient(90deg, var(--acc), var(--acc2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.flight-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 8px 20px;
+  font-size: 14px;
+  color: var(--dim);
+}
+
+.flight-info b {
+  color: var(--acc);
+}
+
+.flight-info .sep {
+  opacity: 0.3;
+}
+
+.tb-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  color: var(--txt);
+  border-radius: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+.icon-btn:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+  box-shadow: var(--glow);
+}
+
+.clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  color: var(--acc2);
+}
+
+/* ============ Main Layout ============ */
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ============ Sidebar ============ */
+.sidebar {
+  width: 240px;
+  background: linear-gradient(180deg, var(--bg2) 0%, var(--card) 100%);
+  border-inline-end: 1px solid var(--bd);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 12px;
+  flex-shrink: 0;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-item {
+  background: transparent;
+  border: none;
+  color: var(--dim);
+  padding: 13px 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: start;
+  transition: 0.2s;
+  position: relative;
+  width: 100%;
+}
+
+.nav-item span:first-child {
+  font-size: 18px;
+}
+
+.nav-item:hover {
+  background: var(--card2);
+  color: var(--txt);
+}
+
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(0, 212, 255, 0.18), transparent);
+  color: var(--acc);
+  border-inline-start: 3px solid var(--acc);
+  box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.08);
+}
+
+.badge {
+  margin-inline-start: auto;
+  background: var(--acc);
+  color: #000;
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-weight: 800;
+}
+
+.badge.red {
+  background: var(--dgr);
+  color: #fff;
+}
+
+.status-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--dim);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--acc2);
+  box-shadow: 0 0 12px var(--acc2);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ============ Content ============ */
+.content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg);
+}
+
+.tab {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow-y: auto;
+}
+
+.tab.on {
+  display: block;
+}
+
+/* ============ الخريطة ============ */
+#map {
+  width: 100%;
+  height: 100%;
+  background: #0a0f1a;
+}
+
+/* لوحة المعلومات */
+.info-panel {
+  position: absolute;
+  top: 20px;
+  inset-inline-end: 20px;
+  z-index: 1000;
+  background: rgba(16, 26, 46, 0.96);
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  padding: 16px 20px;
+  min-width: 270px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--acc);
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bd);
+  letter-spacing: 1px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 13px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.info-row:last-child {
+  border: none;
+}
+
+.info-row span:first-child {
+  color: var(--dim);
+}
+
+.info-row span:last-child {
+  color: var(--acc);
+  font-weight: 700;
+}
+
+/* زر الطوارئ */
+.emg-btn {
+  position: absolute;
+  bottom: 30px;
+  inset-inline-start: 30px;
+  z-index: 1000;
+  background: linear-gradient(90deg, var(--dgr), #ff6b3d);
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 18px 30px;
+  font-size: 17px;
+  font-weight: 900;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 40px rgba(255, 45, 85, 0.6);
+  transition: 0.2s;
+}
+
+.emg-btn:hover {
+  transform: scale(1.05);
+}
+
+.emg-btn.activated {
+  background: #555;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* ============ الركاب ============ */
+.section-header {
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--bd);
+  background: linear-gradient(180deg, var(--bg2) 0%, transparent 100%);
+}
+
+.section-header h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+  color: var(--txt);
+}
+
+.stats {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 12px 20px;
+  min-width: 110px;
+  text-align: center;
+}
+
+.stat-num {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--acc);
+  font-family: 'Orbitron', monospace;
+}
+
+.stat-num.green { color: var(--acc2); }
+.stat-num.yellow { color: var(--wrn); }
+.stat-num.red { color: var(--dgr); }
+
+.stat-lbl {
+  font-size: 12px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+
+.pass-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+  padding: 22px 26px;
+}
+
+.pass-card {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.pass-card::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--acc2);
+}
+
+.pass-card.warn::before { background: var(--wrn); }
+.pass-card.danger::before { background: var(--dgr); }
+
+.pass-card.danger {
+  border-color: var(--dgr);
+  box-shadow: 0 0 24px rgba(255, 45, 85, 0.35);
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { background: var(--card); }
+  50% { background: rgba(255, 45, 85, 0.12); }
+}
+
+.pass-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.pass-name {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--txt);
+}
+
+.pass-seat {
+  font-size: 11px;
+  background: var(--card2);
+  border: 1px solid var(--bd);
+  padding: 3px 10px;
+  border-radius: 20px;
+  color: var(--acc);
+  font-family: 'Orbitron', monospace;
+}
+
+.pass-info {
+  font-size: 12px;
+  color: var(--dim);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pass-info b {
+  color: var(--txt);
+}
+
+.pass-status {
+  display: inline-block;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+.pass-status.safe { background: rgba(0, 255, 157, 0.15); color: var(--acc2); }
+.pass-status.warn { background: rgba(255, 184, 0, 0.15); color: var(--wrn); }
+.pass-status.danger { background: rgba(255, 45, 85, 0.2); color: var(--dgr); }
+
+/* ============ الإنذارات ============ */
+.alerts-list {
+  padding: 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alert-item {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: 0.2s;
+}
+
+.alert-item:hover {
+  border-color: var(--acc);
+}
+
+.alert-item.warn {
+  border-color: var(--wrn);
+  background: rgba(255, 184, 0, 0.06);
+}
+
+.alert-item.danger {
+  border-color: var(--dgr);
+  background: rgba(255, 45, 85, 0.08);
+  animation: blink 1.2s infinite;
+}
+
+.alert-icon { font-size: 26px; }
+
+.alert-body { flex: 1; }
+
+.alert-title {
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.alert-time {
+  font-size: 11px;
+  color: var(--dim);
+  font-family: 'Orbitron', monospace;
+}
+
+.alert-empty {
+  text-align: center;
+  color: var(--dim);
+  padding: 60px 20px;
+  font-size: 15px;
+}
+
+/* ============ السجل ============ */
+.log-list {
+  padding: 22px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+}
+
+.log-item {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.log-time {
+  color: var(--acc2);
+  font-weight: 700;
+}
+
+.log-msg {
+  color: var(--txt);
+}
+
+/* ============ Marker الطيارة ============ */
+.plane-marker {
+  font-size: 32px;
+  filter: drop-shadow(0 0 12px var(--acc));
+  animation: floatPlane 1.5s ease-in-out infinite;
+}
+
+@keyframes floatPlane {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(5deg); }
+}
+
+/* ============ Scrollbar ============ */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb {
+  background: var(--bd);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--acc); }
